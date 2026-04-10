@@ -1,0 +1,66 @@
+.unauthorized-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: var(--background-color);
+}
+
+.unauthorized-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.unauthorized-icon {
+  width: 80px;
+  height: 80px;
+  background: #ff9800;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 1.5rem;
+}
+
+.unauthorized-card h1 {
+  font-size: 2rem;
+  color: var(--text-primary-color);
+  margin: 0 0 1rem 0;
+}
+
+.unauthorized-card p {
+  color: var(--text-secondary-color);
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+
+.unauthorized-hint {
+  font-size: 0.9rem;
+  margin-top: 1rem !important;
+}
+
+.back-to-dashboard-btn {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.875rem 2rem;
+  background: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.back-to-dashboard-btn:hover {
+  background: #5a4bc7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}

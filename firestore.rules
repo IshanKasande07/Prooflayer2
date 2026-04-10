@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Helper function to check if user is privileged user
+    function isPrivilegedUser() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'privileged_user';
+    }
+
+    // Helper function to check if user is privileged or admin
+    function isPrivilegedOrAdmin() {
+      return isPrivilegedUser() || isAdmin();
+    }
+
+    // USERS COLLECTION
+    match /users/{userId} {
+      // Any authenticated user can read profiles (needed to query company users during onboarding)
+      allow read: if request.auth != null;
+
+      // Users can create their own profile during signup/onboarding
+      // Allow creation if authenticated and creating own profile
+      allow create: if request.auth != null &&
+        request.auth.uid == userId &&
+        request.resource.data.uid == userId &&
+        request.resource.data.email == request.auth.token.email;
+
+      // Users can update their own profile (except role field)
+      // Allow if user is updating own profile and not changing role
+      allow update: if request.auth != null &&
+        request.auth.uid == userId &&
+        (!('role' in request.resource.data) || 
+         request.resource.data.role == resource.data.role);
+
+      // Admins have full control over all user profiles
+      allow update, delete: if isAdmin();
+    }
+
+    // TESTIMONIALS COLLECTION
+    match /testimonials/{testimonialId} {
+      // All authenticated users can read testimonials
+      allow read: if request.auth != null;
+
+      // All authenticated users can create testimonials
+      allow create: if request.auth != null;
+
+      // Only privileged users and admins can update/delete testimonials
+      allow update, delete: if request.auth != null && isPrivilegedOrAdmin();
+    }
+
+    // PROJECTS COLLECTION
+    match /projects/{projectId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if isPrivilegedOrAdmin();
+    }
+
+    // ASSETS COLLECTION
+    match /assets/{assetId} {
+      allow read: if request.auth != null;
+      allow write: if isPrivilegedOrAdmin();
+    }
+  }
+}

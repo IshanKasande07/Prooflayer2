@@ -1,0 +1,39 @@
+[
+  {
+    "id": "33wgRQoOXvDIDXeNYaWN",
+    "createdAt": "2026-02-28T06:15:23.127Z",
+    "author": "Marty C.",
+    "avatar": "/assets/transparent-ad5be28fbcd25b7b08d2cebe1d957125437fb5407d75ee717965ad22c8808791.gif",
+    "userId": "GDweYo6jDgcWDlb6f91WnLMrhDb2",
+    "status": "active",
+    "content": "It’s excellent. Ticketing has never been this easy, and we’re able to handle our day-to-day tasks smoothly and without hassle.",
+    "source": "G2",
+    "rating": 5,
+    "companyId": "HillQ",
+    "isDistributed": true,
+    "sharedAt": "2026-02-28T06:49:10.933Z",
+    "importedAt": "2026-02-28T06:15:23.125Z",
+    "role": "Ticketing Made Effortless for Smooth Day-to-Day Work",
+    "approvedAt": "2026-02-28T06:43:02.619Z",
+    "date": "02/27/2026",
+    "type": "firebase"
+  },
+  {
+    "id": "70NuLXRrq7HDKEiy2jvX",
+    "rating": 5,
+    "source": "G2",
+    "content": "What I like best about Druva Data Security Cloud is its fully cloud-native design, which eliminates the complexity of managing on-premises backup infrastructure. The centralized dashboard provides complete visibility across endpoints, servers, and cloud workloads, making monitoring and management very simple and efficient.\nThe platform is highly reliable and scalable, with strong security features such as ransomware protection, immutable backups, and end-to-end encryption. Backup policies are easy to configure, and restores are fast and seamless, which significantly reduces recovery time and operational effort.\nAnother major advantage is its minimal maintenance requirement—since it is SaaS-based, there is no hardware dependency, patching, or infrastructure overhead. The reporting, compliance features, and proactive alerting also help ensure data protection standards are consistently met.\nOverall, Druva Data Security Cloud provides a secure, scalable, and user-friendly backup solution that simplifies data protection management while enhancing security and business continuity.",
+    "status": "active",
+    "userId": "GDweYo6jDgcWDlb6f91WnLMrhDb2",
+    "author": "Harshal G.",
+    "createdAt": "2026-02-28T06:02:20.709Z",
+    "date": "02/18/2026",
+    "role": "Efficient and Centralized Data Security for Modern IT Environments",
+    "approvedAt": "2026-02-28T06:43:02.619Z",
+    "importedAt": "2026-02-28T06:02:20.709Z",
+    "sharedAt": "2026-02-28T06:56:43.998Z",
+    "isDistributed": true,
+    "companyId": "HillQ",
+    "type": "firebase"
+  }
+]

@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* 
+  We import the config in v4 to ensure backward compatibility with tailwind.config.js 
+  Wait, to be safe, v4 automatically picks up the config or we use theme variables.
+*/
+@config "../tailwind.config.js";
+@source "./";
+
+@layer base {
+  :root {
+    --primary-color: #4f46e5;
+    --background-color: #f8fafc;
+    --card-bg-color: #ffffff;
+    --text-primary-color: #0f172a;
+    --text-secondary-color: #475569;
+    --border-color: #e2e8f0;
+  }
+
+  html {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
+  body {
+    margin: 0;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: inherit;
+    /* will use from tailwind defaults or set in html */
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Just basic selection to match primary config */
+  ::selection {
+    background-color: #e0e7ff;
+    color: #4338ca;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: -0.025em;
+    color: #0f172a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+
+  /* Global Loading Styles */
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 1rem;
+    background-color: #f8fafc;
+  }
+
+  .spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 4px solid #e0e7ff;
+    border-top-color: #4f46e5;
+    border-radius: 9999px;
+    animation: spin 1s linear infinite;
+  }
+
+  .loading-container p {
+    color: #475569;
+    font-size: 1rem;
+    margin: 0;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}

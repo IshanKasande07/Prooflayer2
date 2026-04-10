@@ -1,0 +1,116 @@
+/* Onboarding Page Styles */
+.onboarding-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem 1rem;
+}
+
+.onboarding-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 520px;
+  animation: slideUp 0.4s ease-out;
+}
+
+.onboarding-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.onboarding-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.onboarding-header p {
+  color: var(--text-secondary-color);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.onboarding-info {
+  background: #f0f7ff;
+  border: 1px solid #d0e7ff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.onboarding-info p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  color: #1a5490;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.onboarding-info p:first-child {
+  margin-top: 0;
+}
+
+.onboarding-info p:last-child {
+  margin-bottom: 0;
+}
+
+.onboarding-info strong {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.onboarding-submit-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.onboarding-submit-btn:hover:not(:disabled) {
+  background: #5a4bc7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.onboarding-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.onboarding-submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .onboarding-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .onboarding-header h1 {
+    font-size: 1.5rem;
+  }
+}
