@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { FaTrash } from "react-icons/fa";
 
-const TestimonialCard = ({ testimonial, onSelect, isSelected }) => {
+const TestimonialCard = ({ testimonial, onSelect, isSelected, onDelete }) => {
   const navigate = useNavigate();
 
   const handleCheckboxChange = (e) => {
@@ -11,21 +12,39 @@ const TestimonialCard = ({ testimonial, onSelect, isSelected }) => {
     }
   };
 
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    if (onDelete && window.confirm('Are you sure you want to delete this testimonial?')) {
+      onDelete(testimonial.id);
+    }
+  };
+
   const handleCardClick = (e) => {
-    if (!e.target.closest('.testimonial-checkbox-wrapper')) {
+    if (!e.target.closest('.testimonial-action-btn')) {
       navigate(`/review/${testimonial.id}`);
     }
   };
 
   return (
     <div className="relative mb-6 group">
-      <div className="testimonial-checkbox-wrapper absolute top-4 right-4 z-10 cursor-pointer">
-        <input
-          type="checkbox"
-          className="w-5 h-5 cursor-pointer accent-primary-600 rounded focus:ring-primary-500 focus:ring-2 focus:ring-offset-1 transition duration-150 ease-in-out"
-          checked={isSelected || false}
-          onChange={handleCheckboxChange}
-        />
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-3">
+        {onDelete && (
+          <button 
+            onClick={handleDeleteClick}
+            className="testimonial-action-btn p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 border-none bg-transparent opacity-0 group-hover:opacity-100"
+            title="Delete Testimonial"
+          >
+            <FaTrash size={14} />
+          </button>
+        )}
+        <div className="testimonial-action-btn cursor-pointer">
+          <input
+            type="checkbox"
+            className="w-5 h-5 cursor-pointer accent-primary-600 rounded focus:ring-primary-500 focus:ring-2 focus:ring-offset-1 transition duration-150 ease-in-out"
+            checked={isSelected || false}
+            onChange={handleCheckboxChange}
+          />
+        </div>
       </div>
 
       <div

@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { hasPermission } from '../../constants/roles';
 import { BsFolder2, BsPlusSquare, BsDownload, BsHeart, BsGraphUp, BsGear, BsPeople } from 'react-icons/bs';
 import { FiMenu, FiLogOut } from 'react-icons/fi';
+import { FaRobot } from 'react-icons/fa';
+
 import userAvatar from '../../assets/avatar.png';
 
 const Sidebar = ({ isMobileOpen, isCollapsed, toggleMobileMenu, toggleCollapse }) => {
@@ -178,6 +180,15 @@ const Sidebar = ({ isMobileOpen, isCollapsed, toggleMobileMenu, toggleCollapse }
             >
               <BsGraphUp size={20} className={isActive('/distribute') ? 'text-indigo-600' : ''} /> 
               {!isCollapsed && <span>Distribute</span>}
+            </Link>
+            <Link
+              to="/ai-insights"
+              className={`${navItemBase} ${isActive('/ai-insights') ? navItemActive : ''}`}
+              onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
+              title="AI Insights"
+            >
+              <FaRobot size={20} className={isActive('/ai-insights') ? 'text-indigo-600' : ''} /> 
+              {!isCollapsed && <span className="flex items-center gap-2">AI Insights</span>}
             </Link>
           </div>
 

@@ -321,11 +321,38 @@ const UploadSpreadsheet = () => {
     }
   };
 
+  const downloadSampleCSV = () => {
+    const csvContent = 'Name,Role,Company,Testimonial,Rating,Date,AvatarURL\n' +
+      'John Doe,CEO,TechFlow,"ProofLayer has completely transformed how we collect and display social proof. Highly recommended!",5,2024-05-10,https://i.pravatar.cc/150?u=john\n' +
+      'Jane Smith,Marketing Manager,DesignPro,"The AI insights are a game changer. We finally understand the core sentiment of our users.",4,2024-05-08,https://i.pravatar.cc/150?u=jane\n' +
+      'Robert Brown,Product Lead,AppScale,"Setting up the Wall of Love took less than 5 minutes. The integration is seamless.",5,2024-05-07,https://i.pravatar.cc/150?u=robert\n' +
+      'Sarah Wilson,Founder,EcoStart,"Wait times for support are a bit long, but the product itself is amazing and very intuitive.",4,2024-05-06,https://i.pravatar.cc/150?u=sarah\n' +
+      'Michael Chen,CTO,CloudNet,"The dashboard is a bit confusing at first, but the distribution features are top-notch.",3,2024-05-05,https://i.pravatar.cc/150?u=michael';
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'prooflayer_sample_testimonials.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-80px)] bg-background animate-fadeIn">
       <header className="bg-surface border-b border-border px-8 md:px-12 py-8 shadow-sm w-full">
         <h1 className="font-heading text-3xl font-bold text-content-primary mb-2 tracking-tight">Upload spreadsheet</h1>
-        <p className="text-sm text-content-secondary font-medium m-0">Upload a CSV, XLS or XLSX file and ProofLayer will import your proof. See a sample CSV file with supported fields.</p>
+        <p className="text-sm text-content-secondary font-medium m-0">
+          Upload a CSV, XLS or XLSX file and ProofLayer will import your proof. 
+          <button 
+            onClick={downloadSampleCSV}
+            className="ml-1 text-primary-600 hover:text-primary-700 font-bold bg-transparent border-none p-0 cursor-pointer underline decoration-primary-200 underline-offset-4"
+          >
+            Download a sample CSV file
+          </button> with supported fields.
+        </p>
       </header>
 
       <main className="flex-grow flex flex-col items-center p-8 md:p-16 w-full max-w-5xl mx-auto">

@@ -1,5 +1,5 @@
 
-const SCRAPEDO_TOKEN = "550e4ddb55b94844a55810dfb2717d4e1d6a5865a95";
+const SCRAPEDO_TOKEN = "67696a8b2e184a81a5141666ae1a9404d70e9e5aa79";
 const SCRAPEDO_ENDPOINT = "https://api.scrape.do";
 const MAX_PAGES = 2;
 

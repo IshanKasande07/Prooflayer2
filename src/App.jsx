@@ -26,6 +26,8 @@ import ManageUsers from './pages/ManageUsers/ManageUsers';
 import Projects from './pages/Projects/Projects';
 import ProjectDashboard from './pages/ProjectDashboard/ProjectDashboard';
 import Distribute from './pages/Distribute/Distribute';
+import AIInsightsPanel from './pages/AIInsights/AIInsights';
+
 
 
 
@@ -151,6 +153,10 @@ function AppLayout() {
 
           {/* Distribute - All authenticated users */}
           <Route path="/distribute" element={<Distribute />} />
+
+          {/* AI Insights - All authenticated users */}
+          <Route path="/ai-insights" element={<AIInsightsPanel />} />
+
 
           {/* Settings - All authenticated users (Admin section handled inside) */}
           <Route path="/settings" element={<Settings />} />

@@ -2,21 +2,21 @@
 
 // 1. Define the complete Target Schema (Your Database Fields)
 export const TARGET_FIELDS = [
-    { key: 'name', label: 'Customer Name', keywords: ['customer name', 'client name', 'name', 'full name'] },
+    { key: 'author', label: 'Customer Name', keywords: ['customer name', 'client name', 'name', 'full name', 'author'] },
     { key: 'email', label: 'Customer Email', keywords: ['customer email', 'email', 'email address'] },
-    { key: 'photo', label: 'Customer Photo', keywords: ['customer photo', 'user photo', 'avatar', 'profile image'] },
-    { key: 'job_title', label: 'Customer Tagline', keywords: ['customer tagline', 'tagline', 'job title', 'designation', 'role'] },
+    { key: 'avatar', label: 'Customer Photo', keywords: ['customer photo', 'user photo', 'avatar', 'profile image', 'photo'] },
+    { key: 'role', label: 'Customer Tagline', keywords: ['customer tagline', 'tagline', 'job title', 'designation', 'role'] },
     { key: 'date', label: 'Date', keywords: ['date', 'uploaded date', 'creation date', 'review date'] },
     { key: 'video_mp4_url', label: 'Video MP4 URL', keywords: ['video mp4 url', 'video url', 'video link', 'mp4 link'] },
     { key: 'username', label: 'Customer Username', keywords: ['customer username', 'username', 'handle'] },
     { key: 'integration', label: 'Integration', keywords: ['integration', 'source', 'platform', 'import source'] },
-    { key: 'text', label: 'Testimonial Text', keywords: ['testimonial text', 'review', 'comment', 'feedback', 'content'] },
+    { key: 'content', label: 'Testimonial Text', keywords: ['testimonial text', 'review', 'comment', 'feedback', 'content', 'text'] },
     { key: 'rating', label: 'Rating', keywords: ['rating', 'star rating', 'stars'] },
     { key: 'url', label: 'Source URL', keywords: ['source url', 'url', 'link'] },
     { key: 'tags', label: 'Tags', keywords: ['tags', 'categories', 'keywords'] },
     { key: 'company', label: 'Customer Company', keywords: ['customer company', 'company', 'organization'] },
     { key: 'images', label: 'Images', keywords: ['images', 'photos', 'screengrabs', 'screenshots'] },
-    { key: 'testimonial_title', label: 'Testimonial Title', keywords: ['testimonial title', 'title', 'headline'] },
+    { key: 'title', label: 'Testimonial Title', keywords: ['testimonial title', 'title', 'headline'] },
   ];
   
   // 2. Utility function for preprocessing text (standardize to lowercase alphanumeric)

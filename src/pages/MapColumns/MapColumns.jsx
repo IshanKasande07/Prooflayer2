@@ -5,8 +5,10 @@ import './MapColumns.css';
 import { TARGET_FIELDS, smartMapColumns } from '../../utils/columnMapper';
 import { parseFullFile } from '../../utils/fileParser';
 import { saveTestimonialsBatch } from '../../services/firestoreService'; 
+import { useAuth } from '../../contexts/AuthContext';
 
 const MapColumns = () => {
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const fileName = location.state?.fileName || 'spreadsheet.xlsx';
@@ -126,29 +128,39 @@ const MapColumns = () => {
 
       // Transform data using mappings
       const transformedData = rawData.map(row => {
-        const testimonial = {};
+        const testimonial = {
+          status: 'active',
+          source: 'spreadsheet',
+          ownerId: currentUser?.uid || 'anonymous',
+          importedAt: new Date().toISOString()
+        };
         
         // Map each field from the row to the testimonial object
         Object.entries(finalMapping).forEach(([dbKey, userColumn]) => {
           if (userColumn && row[userColumn] !== undefined) {
             const value = row[userColumn];
             // Only add non-empty values
-            if (value && String(value).trim().length > 0) {
-              testimonial[dbKey] = String(value).trim();
+            if (value !== null && value !== undefined && String(value).trim().length > 0) {
+              // Special handling for rating
+              if (dbKey === 'rating') {
+                testimonial[dbKey] = Number(value) || 0;
+              } else {
+                testimonial[dbKey] = String(value).trim();
+              }
             }
           }
         });
 
         // Set default values for required fields if missing
-        if (!testimonial.name) testimonial.name = 'Unknown';
-        if (!testimonial.text) testimonial.text = '';
+        if (!testimonial.author) testimonial.author = 'Unknown';
+        if (!testimonial.content) testimonial.content = '';
         if (!testimonial.date) testimonial.date = new Date().toISOString().split('T')[0];
 
         return testimonial;
-      }).filter(item => Object.keys(item).length > 0); // Filter out completely empty items
+      }).filter(item => item.content.length > 0); // Must have content
 
       if (transformedData.length === 0) {
-        throw new Error('No valid data to upload after transformation.');
+        throw new Error('No valid data to upload. Please ensure your "Testimonial Text" column is mapped correctly.');
       }
 
       console.log('Transformed data to upload:', transformedData);

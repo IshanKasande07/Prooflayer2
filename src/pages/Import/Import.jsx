@@ -91,7 +91,6 @@ const Import = () => {
 
       toImport.forEach(item => {
         // 1. Create new doc in 'testimonials' (Live)
-        // Note: Even if we got the review from local, we try to save to Firebase 'testimonials'
         const newRef = doc(collection(db, 'testimonials'));
         const { id, ...data } = item; // Remove the old ID
 
@@ -105,7 +104,7 @@ const Import = () => {
         if (id.toString().startsWith('local-')) {
           localIdsToRemove.push(id);
         } else if (id.toString().startsWith('mock-')) {
-          // Mock data doesn't need to be deleted from anywhere persistent
+          // Mock
         } else {
           firebaseIdsToDelete.push(id);
         }
@@ -136,6 +135,75 @@ const Import = () => {
     }
   };
 
+  const handleDeleteSingle = async (id) => {
+    try {
+      setLoading(true);
+      const idStr = id.toString();
+      
+      if (!idStr.startsWith('local-') && !idStr.startsWith('mock-')) {
+        const docRef = doc(db, 'imported', id);
+        const batch = writeBatch(db);
+        batch.delete(docRef);
+        await batch.commit();
+      }
+
+      if (idStr.startsWith('local-')) {
+        const currentLocal = JSON.parse(localStorage.getItem('temp_scraped_reviews') || '[]');
+        const updatedLocal = currentLocal.filter(t => t.id !== id);
+        localStorage.setItem('temp_scraped_reviews', JSON.stringify(updatedLocal));
+      }
+
+      setScrapedTestimonials(prev => prev.filter(t => t.id !== id));
+      setSelectedTestimonials(prev => prev.filter(t_id => t_id !== id));
+    } catch (error) {
+      console.error("Error deleting single testimonial:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedTestimonials.length === 0) return;
+    if (!window.confirm(`Discard ${selectedTestimonials.length} selected testimonial(s)? They will not be imported.`)) return;
+
+    try {
+      setImporting(true);
+      const batch = writeBatch(db);
+      const idsToDelete = [...selectedTestimonials];
+      const firebaseIds = [];
+      const localIds = [];
+
+      idsToDelete.forEach(id => {
+        const idStr = id.toString();
+        if (idStr.startsWith('local-')) {
+          localIds.push(id);
+        } else if (!idStr.startsWith('mock-')) {
+          firebaseIds.push(id);
+        }
+      });
+
+      if (firebaseIds.length > 0) {
+        firebaseIds.forEach(id => {
+          batch.delete(doc(db, 'imported', id));
+        });
+        await batch.commit();
+      }
+
+      if (localIds.length > 0) {
+        const currentLocal = JSON.parse(localStorage.getItem('temp_scraped_reviews') || '[]');
+        const updatedLocal = currentLocal.filter(t => !localIds.includes(t.id));
+        localStorage.setItem('temp_scraped_reviews', JSON.stringify(updatedLocal));
+      }
+
+      setScrapedTestimonials(prev => prev.filter(t => !selectedTestimonials.includes(t.id)));
+      setSelectedTestimonials([]);
+    } catch (error) {
+      console.error("Error discarding testimonials:", error);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedTestimonials([]);
@@ -157,16 +225,25 @@ const Import = () => {
           <h1 className="font-heading text-3xl font-bold text-content-primary m-0 tracking-tight">Review Imported Testimonials</h1>
           <p className="text-content-secondary m-0 mt-2 text-base">Select testimonials to add to your dashboard ({scrapedTestimonials.length} pending)</p>
         </div>
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
+          {selectedTestimonials.length > 0 && (
+            <button
+              className="flex-grow md:flex-none px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm font-bold text-red-600 hover:bg-red-100 hover:border-red-300 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 shadow-sm flex items-center justify-center gap-2"
+              onClick={handleDeleteSelected}
+              disabled={importing}
+            >
+              <FaTrash size={12} /> Discard ({selectedTestimonials.length})
+            </button>
+          )}
           <button
-            className="flex-1 md:flex-none px-4 py-2.5 bg-surface border border-border rounded-lg text-sm font-medium text-content-primary hover:bg-background hover:border-content-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
+            className="flex-grow md:flex-none px-4 py-2.5 bg-surface border border-border rounded-lg text-sm font-bold text-content-primary hover:bg-background hover:border-content-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
             onClick={handleSelectAll}
             disabled={scrapedTestimonials.length === 0}
           >
             {selectedTestimonials.length === scrapedTestimonials.length && scrapedTestimonials.length > 0 ? 'Deselect All' : 'Select All'}
           </button>
           <button
-            className="flex-1 md:flex-none px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 border-none"
+            className="flex-grow md:flex-none px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-bold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 border-none"
             onClick={handleImport}
             disabled={selectedTestimonials.length === 0 || importing}
           >
@@ -198,6 +275,7 @@ const Import = () => {
                 testimonial={testimonial}
                 onSelect={handleSelectTestimonial}
                 isSelected={selectedTestimonials.includes(testimonial.id)}
+                onDelete={handleDeleteSingle}
               />
             </div>
           ))}
