@@ -5,7 +5,7 @@ const MAX_PAGES = 2;
 
 /**
  * Converts a class string like "stars-9" to a rating number (4.5)
- */
+*/
 const convertRating = (classString) => {
     if (!classString) return 0;
     const match = classString.match(/stars-(\d+)/);
