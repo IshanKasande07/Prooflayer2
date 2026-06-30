@@ -63,6 +63,15 @@ service cloud.firestore {
       allow update, delete: if isPrivilegedOrAdmin();
     }
 
+    // IMPORTED (STAGING) COLLECTION
+    match /imported/{importedId} {
+      // All authenticated users can read and create staged proofs
+      allow read, create: if request.auth != null;
+
+      // All authenticated users can update (e.g. assign project) and delete (discard)
+      allow update, delete: if request.auth != null;
+    }
+
     // ASSETS COLLECTION
     match /assets/{assetId} {
       allow read: if request.auth != null;

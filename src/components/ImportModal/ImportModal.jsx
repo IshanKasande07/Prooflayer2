@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaCheckCircle, FaArrowDown, FaTimes, FaSpinner } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc } from 'firebase/firestore';
@@ -17,6 +17,7 @@ const ImportModal = ({ source, onClose }) => {
   const [error, setError] = useState('');
   const { currentUser, userProfile } = useAuth();
   const navigate = useNavigate();
+  const abortControllerRef = useRef(null);
 
   // When the modal opens, pre-fill the example URL if the source is G2
   useEffect(() => {
@@ -45,9 +46,16 @@ const ImportModal = ({ source, onClose }) => {
     return null;
   }
 
+  const handleClose = () => {
+    if (isLoading && abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    onClose();
+  };
+
   const handleOverlayClick = (e) => {
     if (e.target.className === 'modal-overlay' && !isLoading) {
-      onClose();
+      handleClose();
     }
   };
 
@@ -60,6 +68,9 @@ const ImportModal = ({ source, onClose }) => {
     e.preventDefault();
     if (!isValid || isLoading) return;
 
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     try {
       setIsLoading(true);
       setError('');
@@ -68,11 +79,11 @@ const ImportModal = ({ source, onClose }) => {
       // 1. Scrape Data
       let reviews = [];
       if (source.title === 'G2') {
-        reviews = await scrapeG2Reviews(url, (msg) => setProgress(msg));
+        reviews = await scrapeG2Reviews(url, (msg) => setProgress(msg), signal);
       } else if (source.title === 'Capterra') {
-        reviews = await scrapeCapterraReviews(url, (msg) => setProgress(msg));
+        reviews = await scrapeCapterraReviews(url, (msg) => setProgress(msg), signal);
       } else if (source.title === 'Trustradius') {
-        reviews = await scrapeTrustRadiusReviews(url, (msg) => setProgress(msg));
+        reviews = await scrapeTrustRadiusReviews(url, (msg) => setProgress(msg), signal);
       } else {
         throw new Error('This source is not yet implemented for auto-import.');
       }
@@ -122,6 +133,10 @@ const ImportModal = ({ source, onClose }) => {
       }, 1000);
 
     } catch (err) {
+      if (err.name === 'AbortError') {
+        console.log('Import aborted by user.');
+        return;
+      }
       console.error('Import failed:', err);
 
       // Map Scrapedo-specific error codes to friendly messages
@@ -142,7 +157,7 @@ const ImportModal = ({ source, onClose }) => {
   return (
     <div className="fixed inset-0 bg-slate-900/60 z-[9999] flex items-center justify-center p-4 animate-fadeIn" onClick={handleOverlayClick}>
       <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl relative animate-slideUp border border-slate-200 flex flex-col">
-        <button className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300 rounded-full p-2" onClick={onClose} disabled={isLoading}>
+        <button className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300 rounded-full p-2" onClick={handleClose}>
           <FaTimes />
         </button>
 

@@ -1,6 +1,6 @@
 
-const SCRAPEDO_TOKEN = "550e4ddb55b94844a55810dfb2717d4e1d6a5865a95";
-const SCRAPEDO_ENDPOINT = "https://api.scrape.do";
+const SCRAPEDO_TOKEN = import.meta.env.VITE_SCRAPEDO_TOKEN || "bd571865318a48dda6ba4117a8b5b201f7a9b466d88";
+const SCRAPEDO_ENDPOINT = "https://api.scrape.do/";
 const MAX_PAGES = 3;
 
 /**
@@ -45,15 +45,19 @@ const detectScrapedoError = async (response) => {
 /**
  * Fetches HTML from Scrape.do with API limit detection
  */
-const fetchWithScrapeDo = async (targetUrl) => {
+const fetchWithScrapeDo = async (targetUrl, signal) => {
     const params = new URLSearchParams({
         token: SCRAPEDO_TOKEN,
         url: targetUrl,
         render: "true",
         geoCode: "us",
-        super: "true"
+        super: "true",
+        playgroundV2: "true"
     });
-    const response = await fetch(`${SCRAPEDO_ENDPOINT}?${params.toString()}`);
+    
+    // Add signal to fetch options for aborting
+    const fetchOptions = signal ? { signal } : {};
+    const response = await fetch(`${SCRAPEDO_ENDPOINT}?${params.toString()}`, fetchOptions);
     return await detectScrapedoError(response);
 };
 
@@ -61,21 +65,29 @@ const fetchWithScrapeDo = async (targetUrl) => {
  * Scraper for Capterra reviews
  * @param {string} baseUrl - The Capterra product URL
  * @param {function} onProgress - Callback to update progress (optional)
+ * @param {AbortSignal} signal - Signal to abort the fetch
  */
-export const scrapeCapterraReviews = async (baseUrl, onProgress) => {
+export const scrapeCapterraReviews = async (baseUrl, onProgress, signal) => {
     let allReviews = [];
     
     // Standard pagination for Capterra is usually ?page=X
-    const separator = baseUrl.includes('?') ? '&' : '?';
-    const pagingBase = `${baseUrl}${separator}page=`;
+    const cleanBaseUrl = baseUrl.split('#')[0];
+    const separator = cleanBaseUrl.includes('?') ? '&' : '?';
+    const pagingBase = `${cleanBaseUrl}${separator}page=`;
 
     for (let page = 1; page <= MAX_PAGES; page++) {
+        // If aborted before we even start a page
+        if (signal && signal.aborted) {
+            console.log("Capterra scraping aborted by user.");
+            break;
+        }
+
         const pageUrl = `${pagingBase}${page}`;
         
         if (onProgress) onProgress(`Scraping Capterra page ${page} of ${MAX_PAGES}...`);
         
         try {
-            const html = await fetchWithScrapeDo(pageUrl);
+            const html = await fetchWithScrapeDo(pageUrl, signal);
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
             
@@ -87,6 +99,10 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress) => {
             if (reviewBlocks.length === 0) {
                 reviewBlocks = Array.from(doc.querySelectorAll("article"));
             }
+            if (reviewBlocks.length === 0) {
+                // New DOM structure fallback
+                reviewBlocks = Array.from(doc.querySelectorAll(".bg-card.shadow-elevation-2.p-6"));
+            }
             
             if (reviewBlocks.length === 0) {
                 console.warn(`No Capterra reviews found on page ${page}. URL: ${pageUrl}`);
@@ -94,12 +110,46 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress) => {
             }
 
             reviewBlocks.forEach(block => {
-                let titleTag = block.querySelector("h3.fs-3") || block.querySelector(".review-card__title");
+                let titleTag = block.querySelector("h3.fs-3") || block.querySelector(".review-card__title") || block.querySelector("h3");
                 let nameTag = block.querySelector("div.fw-600") || block.querySelector("[data-test-id='reviewer-name']");
                 let roleTag = block.querySelector("div.fs-4.text-neutral-90") || block.querySelector(".review-card__author-job-title");
                 let dateTag = block.querySelector("div.fs-5") || block.querySelector(".review-card__review-date");
                 let ratingTag = block.querySelector("span.star-rating-component span.ms-1") || block.querySelector("[data-test-id='review-rating']");
                 let contentTag = block.querySelector("div.fs-4.lh-2") || block.querySelector(".review-card__review-body") || block.querySelector(".formatted-text");
+
+                // Check for new DOM structure tags if old ones aren't found
+                if (!nameTag) nameTag = block.querySelector("p.text-typo-30.font-semibold");
+                if (!roleTag) {
+                    const roles = Array.from(block.querySelectorAll("p.text-typo-10.text-neutral-80"));
+                    if (roles.length > 0) roleTag = { textContent: roles.map(r => r.textContent.trim()).filter(Boolean).join(" - ") };
+                }
+                if (!dateTag) dateTag = block.querySelector("p.text-typo-0.text-neutral-90");
+
+                if (!contentTag) {
+                    const mainContent = block.querySelector("div.mb-4 > p.text-typo-10.text-neutral-99");
+                    const prosCons = block.querySelectorAll(".space-y-4.mb-4 > div");
+                    let combinedContent = "";
+                    if (mainContent) combinedContent += mainContent.textContent.trim() + "\n\n";
+                    
+                    prosCons.forEach(pc => {
+                        const label = pc.querySelector("span.font-semibold");
+                        const val = pc.querySelector("p.text-typo-20");
+                        if (label && val) {
+                            combinedContent += `${label.textContent.trim()}: ${val.textContent.trim()}\n`;
+                        }
+                    });
+
+                    if (combinedContent) {
+                        contentTag = { textContent: combinedContent.trim() }; 
+                    }
+                }
+
+                if (!ratingTag) {
+                    const ratingSpan = Array.from(block.querySelectorAll("span.font-bold")).find(span => /^\d(\.\d)?$/.test(span.textContent.trim()));
+                    if (ratingSpan) {
+                        ratingTag = ratingSpan;
+                    }
+                }
 
                 const name = nameTag ? nameTag.textContent.trim() : "Capterra User";
                 const title = titleTag ? titleTag.textContent.trim() : "";
@@ -138,6 +188,10 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress) => {
             });
 
         } catch (error) {
+            if (error.name === 'AbortError') {
+                console.log('Capterra scraping aborted.');
+                break;
+            }
             if (error.code === 'SCRAPEDO_RATE_LIMIT' || error.code === 'SCRAPEDO_QUOTA_EXCEEDED' || error.code === 'SCRAPEDO_AUTH_FAILED') {
                 throw error;
             }

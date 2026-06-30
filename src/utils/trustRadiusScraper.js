@@ -1,6 +1,6 @@
 
-const SCRAPEDO_TOKEN = "550e4ddb55b94844a55810dfb2717d4e1d6a5865a95";
-const SCRAPEDO_ENDPOINT = "https://api.scrape.do";
+const SCRAPEDO_TOKEN = "bd571865318a48dda6ba4117a8b5b201f7a9b466d88";
+const SCRAPEDO_ENDPOINT = "/api/scrape";
 const MAX_PAGES = 3;
 
 /**
@@ -51,7 +51,8 @@ const fetchWithScrapeDo = async (targetUrl) => {
         url: targetUrl,
         render: "true",
         geoCode: "us",
-        super: "true"
+        super: "true",
+        playgroundV2: "true"
     });
     const response = await fetch(`${SCRAPEDO_ENDPOINT}?${params.toString()}`);
     return await detectScrapedoError(response);
@@ -65,8 +66,9 @@ const fetchWithScrapeDo = async (targetUrl) => {
 export const scrapeTrustRadiusReviews = async (baseUrl, onProgress) => {
     let allReviews = [];
     
-    const separator = baseUrl.includes('?') ? '&' : '?';
-    const pagingBase = `${baseUrl}${separator}page=`;
+    const cleanBaseUrl = baseUrl.split('#')[0];
+    const separator = cleanBaseUrl.includes('?') ? '&' : '?';
+    const pagingBase = `${cleanBaseUrl}${separator}page=`;
 
     for (let page = 1; page <= MAX_PAGES; page++) {
         const pageUrl = `${pagingBase}${page}`;

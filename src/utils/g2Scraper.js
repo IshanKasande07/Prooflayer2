@@ -1,6 +1,6 @@
 
-const SCRAPEDO_TOKEN = "67696a8b2e184a81a5141666ae1a9404d70e9e5aa79";
-const SCRAPEDO_ENDPOINT = "https://api.scrape.do";
+const SCRAPEDO_TOKEN = "bd571865318a48dda6ba4117a8b5b201f7a9b466d88";
+const SCRAPEDO_ENDPOINT = "/api/scrape";
 const MAX_PAGES = 2;
 
 /**
@@ -70,7 +70,8 @@ const fetchWithScrapeDo = async (targetUrl) => {
         url: targetUrl,
         render: "true",
         geoCode: "us",
-        super: "true"
+        super: "true",
+        playgroundV2: "true"
     });
 
     const response = await fetch(`${SCRAPEDO_ENDPOINT}?${params.toString()}`);
@@ -92,12 +93,21 @@ export const scrapeG2Reviews = async (baseUrl, onProgress) => {
     // Strictly follow Python script pagination: BASE_URL + page
     // The Python script used "?survey_responses_page=" 
     // 1. Determine paging parameter (Product pages use ?page, Sellers use ?survey_responses_page)
-    const separator = baseUrl.includes('?') ? '&' : '?';
+    // Strip any hash fragments before appending query parameters
+    const cleanBaseUrl = baseUrl.split('#')[0];
+    
+    // G2 modern pages use a turbo-frame to load reviews asynchronously from /reviews_and_filters
+    let fetchUrl = cleanBaseUrl;
+    if (fetchUrl.endsWith('/reviews') || fetchUrl.includes('/reviews?')) {
+        fetchUrl = fetchUrl.replace('/reviews', '/reviews_and_filters');
+    }
+
+    const separator = fetchUrl.includes('?') ? '&' : '?';
     let pagingParam = 'page'; // default for products
-    if (baseUrl.includes('/sellers/') || baseUrl.includes('survey_responses_page')) {
+    if (fetchUrl.includes('/sellers/') || fetchUrl.includes('survey_responses_page')) {
         pagingParam = 'survey_responses_page';
     }
-    const pagingBase = `${baseUrl}${separator}${pagingParam}=`;
+    const pagingBase = `${fetchUrl}${separator}${pagingParam}=`;
 
     for (let page = 1; page <= MAX_PAGES; page++) {
         const pageUrl = `${pagingBase}${page}`;
@@ -113,9 +123,9 @@ export const scrapeG2Reviews = async (baseUrl, onProgress) => {
             // Selector A: Seller pages (from your Python script)
             let reviewBlocks = Array.from(doc.querySelectorAll("#reviews-result .elv-border"));
 
-            // Selector B: Product pages (itemprop is the standard now)
+            // Selector B: Product pages (itemprop is the standard now, can be article or div)
             if (reviewBlocks.length === 0) {
-                reviewBlocks = Array.from(doc.querySelectorAll("div[itemprop='review']"));
+                reviewBlocks = Array.from(doc.querySelectorAll("article[itemprop='review'], div[itemprop='review']"));
             }
 
             // Selector C: Modern Product cards
@@ -137,32 +147,42 @@ export const scrapeG2Reviews = async (baseUrl, onProgress) => {
                 let dateTag = block.querySelector("div.elv-flex.elv-justify-between > span");
 
                 // If not found, try Product-page selectors (itemprop)
-                if (!nameTag) nameTag = block.querySelector("[itemprop='author']") || block.querySelector(".customer-info__author-name");
-                if (!titleTag) titleTag = block.querySelector("[itemprop='name']") || block.querySelector(".review-list-item__title");
+                // Note: The author's name is often in a meta tag inside [itemprop='author']
+                if (!nameTag) nameTag = block.querySelector("[itemprop='author'] meta[itemprop='name']") || block.querySelector("[itemprop='author']") || block.querySelector(".customer-info__author-name");
+                // Note: Title must be div/h3/h4 so we don't accidentally get the author's meta tag again
+                if (!titleTag) titleTag = block.querySelector("div[itemprop='name'], h3[itemprop='name']") || block.querySelector(".review-list-item__title");
                 if (!descTag) descTag = block.querySelector("[itemprop='reviewBody']") || block.querySelector(".review-list-item__body") || block.querySelector(".formatted-text");
                 if (!dateTag) dateTag = block.querySelector("[itemprop='datePublished']") || block.querySelector(".review-list-item__date");
                 if (!ratingTag) ratingTag = block.querySelector("[itemprop='reviewRating'] meta[itemprop='ratingValue']");
 
-                const name = nameTag ? nameTag.textContent.trim() : "G2 User";
+                // Extract name
+                const name = nameTag ? (nameTag.getAttribute('content') || nameTag.textContent.trim()) : "G2 User";
                 const title = titleTag ? titleTag.textContent.trim() : "";
                 const description = descTag ? descTag.textContent.trim() : "";
-                let date = dateTag ? (dateTag.getAttribute('datetime') || dateTag.textContent.trim()) : new Date().toISOString();
+                
+                // Extract date
+                let date = new Date().toISOString();
+                if (dateTag) {
+                    date = dateTag.getAttribute('content') || dateTag.getAttribute('datetime') || dateTag.textContent.trim();
+                }
 
+                // Extract rating
                 let rating = 0;
                 if (ratingTag) {
                     if (ratingTag.tagName === 'META') {
-                        rating = parseFloat(ratingTag.getAttribute('content'));
+                        rating = parseFloat(ratingTag.getAttribute('content')) || 0;
                     } else {
                         rating = convertRating(ratingTag.className);
                     }
                 }
 
                 // Avatar extraction (extra benefit for JS version)
+                // G2 uses lazy loading with data-deferred-image-src
                 const imgTag = block.querySelector("img");
                 let avatarUrl = "";
                 if (imgTag) {
-                    const possibleUrl = imgTag.getAttribute('data-src') || imgTag.getAttribute('src');
-                    if (possibleUrl && !possibleUrl.includes('spacer')) {
+                    const possibleUrl = imgTag.getAttribute('data-deferred-image-src') || imgTag.getAttribute('data-src') || imgTag.getAttribute('src');
+                    if (possibleUrl && !possibleUrl.includes('spacer') && !possibleUrl.includes('transparent')) {
                         avatarUrl = possibleUrl;
                     }
                 }

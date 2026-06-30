@@ -4,5 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()]
+  plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api/scrape': {
+        target: 'https://api.scrape.do',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/scrape/, '')
+      }
+    }
+  }
 })
