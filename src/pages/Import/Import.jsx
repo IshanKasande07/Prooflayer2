@@ -284,10 +284,10 @@ const Import = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6 border-b border-border pb-6">
         <div>
           <h1 className="font-heading text-3xl font-bold text-content-primary m-0 tracking-tight">
-            Review Imported Testimonials
+            Approval Queue
           </h1>
           <p className="text-content-secondary m-0 mt-2 text-base">
-            Select testimonials to add to your dashboard ({scrapedTestimonials.length} pending)
+            Review your recently fetched testimonials. Approve the ones you want to keep in your library ({scrapedTestimonials.length} pending).
           </p>
         </div>
 

@@ -68,9 +68,9 @@ const Projects = () => {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-8 md:px-10 border-b border-border bg-surface shadow-sm z-10 sticky top-0 md:static">
         <div>
           <h1 className="font-heading text-2xl md:text-3xl font-bold text-content-primary m-0 tracking-tight flex items-center gap-3">
-            Workspace
+            Project Workspaces
           </h1>
-          <p className="text-sm text-content-secondary font-medium mt-1 mb-0">Manage projects and assets for <span className="font-semibold text-primary-600">{userProfile?.company}</span></p>
+          <p className="text-sm text-content-secondary font-medium mt-1 mb-0">Organize your testimonials into different campaigns or projects for <span className="font-semibold text-primary-600">{userProfile?.company}</span>. Start by creating a project.</p>
         </div>
         <div className="flex items-center gap-4 w-full md:w-auto">
           {canCreate && (

@@ -73,8 +73,8 @@ const NewProof = () => {
           </div>
         )}
         <header className="bg-surface border-b border-slate-200 px-6 md:px-10 py-8 w-full shadow-sm z-10 sticky top-0 md:static">
-          <h1 className="font-heading text-3xl font-bold text-slate-800 mb-1.5 tracking-tight">Add proof to your account</h1>
-          <p className="text-sm text-slate-500 font-medium m-0">Connect your sources and import proofs to ProofLayer.</p>
+          <h1 className="font-heading text-3xl font-bold text-slate-800 mb-1.5 tracking-tight">Add New Proofs</h1>
+          <p className="text-sm text-slate-500 font-medium m-0">Connect external platforms to import reviews automatically, or add new testimonials manually.</p>
         </header>
 
         <main className="flex-grow overflow-y-auto px-6 md:px-12 py-10 flex flex-col items-center w-full">

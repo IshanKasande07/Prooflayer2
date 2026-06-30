@@ -100,10 +100,10 @@ const Sidebar = ({ isMobileOpen, isCollapsed, toggleMobileMenu, toggleCollapse }
               to="/projects"
               className={`${navItemBase} ${isActive('/projects') || location.pathname.startsWith('/projects/') ? navItemActive : ''}`}
               onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
-              title="Projects"
+              title="Project Workspaces"
             >
               <BsFolder2 size={20} className={isActive('/projects') || location.pathname.startsWith('/projects/') ? 'text-indigo-600' : ''} /> 
-              {!isCollapsed && <span>Projects</span>}
+              {!isCollapsed && <span>Project Workspaces</span>}
             </Link>
           </div>
 
@@ -118,20 +118,20 @@ const Sidebar = ({ isMobileOpen, isCollapsed, toggleMobileMenu, toggleCollapse }
               to="/new-proof"
               className={`${navItemBase} ${isActive('/new-proof') ? navItemActive : ''}`}
               onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
-              title="New Proof"
+              title="Add New Proofs"
             >
               <BsPlusSquare size={20} className={isActive('/new-proof') ? 'text-indigo-600' : ''} /> 
-              {!isCollapsed && <span>New Proof</span>}
+              {!isCollapsed && <span>Add New Proofs</span>}
             </Link>
             {canImport && (
               <Link
                 to="/import"
                 className={`${navItemBase} ${isActive('/import') ? navItemActive : ''}`}
                 onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
-                title="Import"
+                title="Approval Queue"
               >
                 <BsDownload size={20} className={isActive('/import') ? 'text-indigo-600' : ''} /> 
-                {!isCollapsed && <span>Import</span>}
+                {!isCollapsed && <span>Approval Queue</span>}
               </Link>
             )}
           </div>
@@ -147,20 +147,20 @@ const Sidebar = ({ isMobileOpen, isCollapsed, toggleMobileMenu, toggleCollapse }
               to="/dashboard"
               className={`${navItemBase} ${isActive('/dashboard') ? navItemActive : ''}`}
               onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
-              title="Dashboard"
+              title="Testimonial Library"
             >
               <BsHeart size={20} className={isActive('/dashboard') ? 'text-indigo-600' : ''} /> 
-              {!isCollapsed && <span>Your Proofs</span>}
+              {!isCollapsed && <span>Testimonial Library</span>}
             </Link>
             {canManageUsers && (
               <Link
                 to="/manage-users"
                 className={`${navItemBase} ${isActive('/manage-users') ? navItemActive : ''}`}
                 onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
-                title="Manage Users"
+                title="Team Management"
               >
                 <BsPeople size={20} className={isActive('/manage-users') ? 'text-indigo-600' : ''} /> 
-                {!isCollapsed && <span>Users</span>}
+                {!isCollapsed && <span>Team Management</span>}
               </Link>
             )}
           </div>
@@ -176,19 +176,19 @@ const Sidebar = ({ isMobileOpen, isCollapsed, toggleMobileMenu, toggleCollapse }
               to="/distribute"
               className={`${navItemBase} ${isActive('/distribute') ? navItemActive : ''}`}
               onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
-              title="Distribute"
+              title="Share & Embed"
             >
               <BsGraphUp size={20} className={isActive('/distribute') ? 'text-indigo-600' : ''} /> 
-              {!isCollapsed && <span>Distribute</span>}
+              {!isCollapsed && <span>Share & Embed</span>}
             </Link>
             <Link
               to="/ai-insights"
               className={`${navItemBase} ${isActive('/ai-insights') ? navItemActive : ''}`}
               onClick={() => { if(isMobileOpen) toggleMobileMenu(); }}
-              title="AI Insights"
+              title="AI Analysis"
             >
               <FaRobot size={20} className={isActive('/ai-insights') ? 'text-indigo-600' : ''} /> 
-              {!isCollapsed && <span className="flex items-center gap-2">AI Insights</span>}
+              {!isCollapsed && <span className="flex items-center gap-2">AI Analysis</span>}
             </Link>
           </div>
 
@@ -203,10 +203,10 @@ const Sidebar = ({ isMobileOpen, isCollapsed, toggleMobileMenu, toggleCollapse }
               <Link
                 to="/settings"
                 className={`${navItemBase} ${isActive('/settings') ? navItemActive : ''}`}
-                title="Settings"
+                title="Account Settings"
               >
                 <BsGear size={20} className={isActive('/settings') ? 'text-indigo-600' : ''} /> 
-                {!isCollapsed && <span>Settings</span>}
+                {!isCollapsed && <span>Account Settings</span>}
               </Link>
             </div>
           )}

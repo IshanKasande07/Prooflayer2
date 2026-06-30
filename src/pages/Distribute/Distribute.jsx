@@ -30,8 +30,8 @@ const Distribute = () => {
     return (
         <div className="distribute-container">
             <header className="distribute-header">
-                <h1>Distribute Your Proof</h1>
-                <p>Display your reviews on any website using our simple embed code or API.</p>
+                <h1>Share & Embed</h1>
+                <p>Generate an embed code or API link to showcase your best testimonials on your website. Copy the code below to get started.</p>
             </header>
 
             <div className="distribute-content">

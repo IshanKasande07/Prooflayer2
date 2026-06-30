@@ -269,8 +269,8 @@ const Dashboard = () => {
       <header className="flex flex-col gap-6 px-6 py-8 md:px-10 md:py-8 border-b border-slate-200 bg-surface shadow-sm z-10 sticky top-0 md:static">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="font-heading text-3xl font-bold text-slate-800 m-0 tracking-tight">Your Proofs</h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">Manage, approve, and organize your collected testimonials.</p>
+            <h1 className="font-heading text-3xl font-bold text-slate-800 m-0 tracking-tight">Testimonial Library</h1>
+            <p className="text-sm text-slate-500 font-medium mt-1">Review and organize your testimonials. Assign them to Project Workspaces or share them directly.</p>
           </div>
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button className="hidden md:flex p-2 items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors" onClick={() => {}}>

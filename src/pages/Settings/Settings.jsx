@@ -9,7 +9,7 @@ const Settings = () => {
     return (
         <div className="p-8 max-w-4xl mx-auto animate-fadeIn">
             <h1 className="font-heading text-3xl font-bold text-content-primary mb-2 tracking-tight">Account Settings</h1>
-            <p className="text-content-secondary mb-8">View and manage your profile information</p>
+            <p className="text-content-secondary mb-8">View and manage your personal profile, email, and company details.</p>
 
             {/* Profile Section */}
             <div className="bg-surface rounded-xl shadow-sm border border-border p-8">

@@ -136,8 +136,8 @@ const ManageUsers = () => {
         <div className="p-6 md:p-8 max-w-6xl mx-auto animate-fadeIn">
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-heading text-3xl font-bold text-content-primary mb-2 tracking-tight">Manage Users</h1>
-                    <p className="text-content-secondary m-0">Manage team members for <span className="font-semibold text-primary-600">{userProfile?.company}</span></p>
+                    <h1 className="font-heading text-3xl font-bold text-content-primary mb-2 tracking-tight">Team Management</h1>
+                    <p className="text-content-secondary m-0">Invite, approve, and manage access roles for your team members at <span className="font-semibold text-primary-600">{userProfile?.company}</span>.</p>
                 </div>
             </div>
 

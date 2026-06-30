@@ -117,9 +117,9 @@ const AIInsightsPanel = () => {
           <div>
             <h1 className="font-heading text-3xl font-bold text-slate-800 m-0 tracking-tight flex items-center gap-3">
               <FaRobot className="text-indigo-600" />
-              AI Insights
+              AI Analysis
             </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">Generate deep AI-powered analysis of your collected reviews.</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Run our AI model to automatically analyze sentiments, identify key themes, and extract pros and cons.</p>
           </div>
           {!loading && (
             <button 
