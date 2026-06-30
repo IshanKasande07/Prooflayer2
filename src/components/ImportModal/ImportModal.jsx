@@ -123,7 +123,17 @@ const ImportModal = ({ source, onClose }) => {
 
     } catch (err) {
       console.error('Import failed:', err);
-      setError(err.message || 'Failed to import reviews');
+
+      // Map Scrapedo-specific error codes to friendly messages
+      if (err.code === 'SCRAPEDO_RATE_LIMIT') {
+        setError('Scraper API rate limit hit. Please wait a few minutes before trying again.');
+      } else if (err.code === 'SCRAPEDO_QUOTA_EXCEEDED') {
+        setError('Scraper API monthly quota exceeded. Check your Scrape.do dashboard to upgrade or wait for the next billing cycle.');
+      } else if (err.code === 'SCRAPEDO_AUTH_FAILED') {
+        setError('Scraper API token is invalid or expired. Please update your Scrape.do token in the .env file.');
+      } else {
+        setError(err.message || 'Failed to import reviews. Please check the URL and try again.');
+      }
     } finally {
       setIsLoading(false);
     }

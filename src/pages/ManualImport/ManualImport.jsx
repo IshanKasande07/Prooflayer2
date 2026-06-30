@@ -1,16 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaBuilding, FaStar, FaCheckCircle, FaExclamationCircle, FaSpinner } from 'react-icons/fa';
 import { BsList, BsArrowLeft, BsX } from 'react-icons/bs';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
 import { useAuth } from '../../contexts/AuthContext';
-import { saveTestimonial } from '../../services/firestoreService';
 import { uploadFile } from '../../services/storageService';
+import { getProjects, assignStagedProofsToProject } from '../../services/projectService';
+import ProjectPickerModal from '../../components/ProjectPickerModal/ProjectPickerModal';
 import './ManualImport.css';
 
 const ManualImport = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  
+  const { currentUser, userProfile } = useAuth();
+
   const [formData, setFormData] = useState({
     author: '',
     role: '',
@@ -43,6 +46,20 @@ const ManualImport = () => {
   const avatarInputRef = useRef(null);
   const logoInputRef = useRef(null);
 
+  // Project picker state
+  const [projects, setProjects] = useState([]);
+  const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false);
+  const [stagedDocId, setStagedDocId] = useState(null);
+
+  // Fetch projects for the company
+  useEffect(() => {
+    if (userProfile?.company) {
+      getProjects(userProfile.company)
+        .then(setProjects)
+        .catch(err => console.warn('Could not load projects:', err));
+    }
+  }, [userProfile]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -55,7 +72,7 @@ const ManualImport = () => {
     const file = e.target.files[0];
     if (file) {
       // Basic validation
-      if (file.size > 5 * 1024 * 1024) { // Increased to 5MB just in case
+      if (file.size > 5 * 1024 * 1024) {
         setStatus({ ...status, error: "Image size should be less than 5MB" });
         return;
       }
@@ -88,10 +105,7 @@ const ManualImport = () => {
   };
 
   const handleRatingClick = (rating) => {
-    setFormData(prev => ({
-      ...prev,
-      rating
-    }));
+    setFormData(prev => ({ ...prev, rating }));
   };
 
   const handleSubmit = async (e) => {
@@ -145,9 +159,9 @@ const ManualImport = () => {
       }
 
       // 3. Prepare CLEAN data (Firestore will reject raw File objects)
-      setStatus(prev => ({ ...prev, message: 'Saving to database...' }));
+      setStatus(prev => ({ ...prev, message: 'Saving to staging...' }));
       
-      const testimonialData = {
+      const proof = {
         author: formData.author || 'Anonymous',
         role: formData.role || '',
         email: formData.email || '',
@@ -158,34 +172,26 @@ const ManualImport = () => {
         region: formData.region || '',
         proofType: formData.proofType || 'text',
         rating: Number(formData.rating) || 0,
-        testimonialTitle: formData.testimonialTitle || '',
+        title: formData.testimonialTitle || '',
         content: formData.content || '',
         avatar: avatarUrl,
         companyLogo: logoUrl,
-        ownerId: currentUser?.uid || 'anonymous',
         source: 'manual',
-        status: 'active',
-        isDistributed: false,
-        importedAt: new Date().toISOString()
+        status: 'pending',
+        userId: currentUser?.uid || 'anonymous',
+        companyId: userProfile?.company || '',
+        createdAt: new Date().toISOString(),
       };
 
-      console.log('Saving cleaned data to Firestore:', testimonialData);
+      console.log('Saving cleaned data to Firestore staging:', proof);
 
-      // 4. Save to Firestore
-      try {
-        const docId = await saveTestimonial(testimonialData);
-        console.log('Document saved successfully with ID:', docId);
-      } catch (dbErr) {
-        console.error('Firestore save failed:', dbErr);
-        throw new Error(`Database error: ${dbErr.message}`);
-      }
+      // 4. Save to 'imported' (staging) collection
+      const docRef = await addDoc(collection(db, 'imported'), proof);
+      console.log('Document staged successfully with ID:', docRef.id);
 
-      setStatus({ loading: false, error: null, success: true, message: 'Saved successfully!' });
-      
-      // Redirect after a short delay
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+      setStagedDocId(docRef.id);
+      setStatus({ loading: false, error: null, success: true, message: 'Saved! Assign to a project...' });
+      setIsProjectPickerOpen(true);
 
     } catch (err) {
       console.error('SUBMISSION FAILED:', err);
@@ -195,6 +201,19 @@ const ManualImport = () => {
         success: false,
         message: '' 
       });
+    }
+  };
+
+  const handleProjectConfirmed = async (project) => {
+    try {
+      if (stagedDocId) {
+        await assignStagedProofsToProject([stagedDocId], project.id, project.name);
+      }
+    } catch (err) {
+      console.warn('Could not stamp project on manual proof:', err);
+    } finally {
+      setIsProjectPickerOpen(false);
+      navigate('/import');
     }
   };
 
@@ -227,7 +246,7 @@ const ManualImport = () => {
           {status.success && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center gap-3 animate-slideIn">
               <FaCheckCircle />
-              <span>Testimonial saved successfully! Redirecting...</span>
+              <span>Testimonial saved successfully! Assigning to project...</span>
             </div>
           )}
 
@@ -537,10 +556,19 @@ const ManualImport = () => {
           </form>
         </div>
       </main>
+
+      <ProjectPickerModal
+        isOpen={isProjectPickerOpen}
+        projects={projects}
+        count={1}
+        title="Which project is this proof for?"
+        subtitle="Assign this manually added proof to a project before reviewing it."
+        confirmLabel="Assign & Review on Import Page"
+        mandatory={true}
+        onConfirm={handleProjectConfirmed}
+      />
     </div>
   );
 };
 
 export default ManualImport;
-
-

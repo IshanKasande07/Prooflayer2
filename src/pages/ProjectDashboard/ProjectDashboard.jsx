@@ -212,20 +212,28 @@ const ProjectDashboard = () => {
           <div className="animate-fadeIn">
              {testimonials.length === 0 ? (
                <div className="text-center py-16 text-content-secondary bg-surface rounded-xl border border-border border-dashed shadow-sm">
-                 <p className="text-lg font-medium text-content-primary">No testimonials attached to this project.</p>
-                 <p className="text-sm mt-2 text-content-secondary">
-                   You can assign testimonials to this project during import or edit them from the Dashboard.
+                 <p className="text-lg font-medium text-content-primary">No testimonials attached to this project yet.</p>
+                 <p className="text-sm mt-2 text-content-secondary max-w-sm mx-auto">
+                   Import proofs and assign them to this project, or use the Dashboard to reassign existing proofs.
                  </p>
                </div>
             ) : (
               <div className="flex flex-col gap-3">
                 {testimonials.map(proof => (
-                  <TestimonialCard
-                    key={proof.id}
-                    testimonial={proof}
-                    isSelected={false}
-                    onSelect={() => {}}
-                  />
+                  <div key={proof.id} className="relative">
+                    {proof._staged && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-300 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                          ⏳ Pending Approval
+                        </span>
+                      </div>
+                    )}
+                    <TestimonialCard
+                      testimonial={proof}
+                      isSelected={false}
+                      onSelect={() => {}}
+                    />
+                  </div>
                 ))}
               </div>
             )}

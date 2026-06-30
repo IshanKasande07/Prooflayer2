@@ -16,7 +16,53 @@ const convertRating = (classString) => {
 };
 
 /**
- * Fetches HTML from Scrape.do
+ * Detects whether a Scrapedo response indicates an API limit / auth failure.
+ * Scrapedo returns 429 for rate limits, 402 for quota exceeded, 401 for bad token.
+ * It can also return 200 with a JSON error body like { "message": "Usage limit exceeded" }.
+ */
+const detectScrapedoError = async (response) => {
+    const status = response.status;
+
+    // Hard HTTP error codes
+    if (status === 429) {
+        console.error('[Scrapedo] ❌ API rate limit reached (HTTP 429 – Too Many Requests). Slow down or upgrade your plan.');
+        throw Object.assign(new Error('Scrapedo API rate limit reached.'), { code: 'SCRAPEDO_RATE_LIMIT' });
+    }
+    if (status === 402) {
+        console.error('[Scrapedo] ❌ API usage quota exceeded (HTTP 402 – Payment Required). Your monthly/daily credits are used up.');
+        throw Object.assign(new Error('Scrapedo API quota exceeded.'), { code: 'SCRAPEDO_QUOTA_EXCEEDED' });
+    }
+    if (status === 401) {
+        console.error('[Scrapedo] ❌ API token invalid or expired (HTTP 401 – Unauthorized). Check your SCRAPEDO_TOKEN.');
+        throw Object.assign(new Error('Scrapedo API token invalid.'), { code: 'SCRAPEDO_AUTH_FAILED' });
+    }
+    if (!response.ok) {
+        console.error(`[Scrapedo] ❌ Unexpected error (HTTP ${status}).`);
+        throw new Error(`Scrape.do failed with status: ${status}`);
+    }
+
+    // Scrapedo sometimes returns 200 with a JSON error body
+    const text = await response.text();
+    try {
+        const json = JSON.parse(text);
+        const msg = (json?.message || json?.error || '').toLowerCase();
+        if (msg.includes('limit') || msg.includes('quota') || msg.includes('exceeded') || msg.includes('credit')) {
+            console.error(`[Scrapedo] ❌ API limit reached (JSON body): ${json.message || json.error}`);
+            throw Object.assign(new Error('Scrapedo API limit reached.'), { code: 'SCRAPEDO_QUOTA_EXCEEDED' });
+        }
+        if (msg.includes('unauthorized') || msg.includes('invalid token') || msg.includes('forbidden')) {
+            console.error(`[Scrapedo] ❌ API auth error (JSON body): ${json.message || json.error}`);
+            throw Object.assign(new Error('Scrapedo API auth error.'), { code: 'SCRAPEDO_AUTH_FAILED' });
+        }
+    } catch (parseErr) {
+        if (parseErr.code) throw parseErr; // re-throw typed errors
+        // Not JSON — that's fine, it's the HTML we want
+    }
+    return text;
+};
+
+/**
+ * Fetches HTML from Scrape.do with API limit detection
  */
 const fetchWithScrapeDo = async (targetUrl) => {
     const params = new URLSearchParams({
@@ -28,10 +74,7 @@ const fetchWithScrapeDo = async (targetUrl) => {
     });
 
     const response = await fetch(`${SCRAPEDO_ENDPOINT}?${params.toString()}`);
-    if (!response.ok) {
-        throw new Error(`Scrape.do failed with status: ${response.status}`);
-    }
-    return await response.text();
+    return await detectScrapedoError(response);
 };
 
 /**
@@ -139,7 +182,11 @@ export const scrapeG2Reviews = async (baseUrl, onProgress) => {
             });
 
         } catch (error) {
-            console.error(`Error scraping page ${page}:`, error);
+            if (error.code === 'SCRAPEDO_RATE_LIMIT' || error.code === 'SCRAPEDO_QUOTA_EXCEEDED' || error.code === 'SCRAPEDO_AUTH_FAILED') {
+                // Bubble up — no point retrying other pages
+                throw error;
+            }
+            console.error(`Error scraping G2 page ${page}:`, error);
         }
     }
 

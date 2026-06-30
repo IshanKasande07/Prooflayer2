@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where, orderBy, Timestamp, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, Timestamp, doc, getDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../firebase/firebase';
 
@@ -121,21 +121,38 @@ export const getAssetsByProject = async (projectId) => {
 
 export const getTestimonialsByProject = async (projectId) => {
     try {
-        const q = query(
-            collection(db, 'testimonials'),
-            where('projectId', '==', projectId),
-            where('status', '==', 'active')
-        );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
+        // Query both approved (testimonials) and staged (imported) collections in parallel
+        const [approvedSnap, stagedSnap] = await Promise.all([
+            getDocs(query(
+                collection(db, 'testimonials'),
+                where('projectId', '==', projectId)
+            )),
+            getDocs(query(
+                collection(db, 'imported'),
+                where('projectId', '==', projectId)
+            ))
+        ]);
+
+        const approved = approvedSnap.docs.map(d => ({
+            id: d.id,
+            ...d.data(),
+            _staged: false
         }));
+
+        const staged = stagedSnap.docs.map(d => ({
+            id: d.id,
+            ...d.data(),
+            _staged: true  // flag so the UI can show a "Pending" badge
+        }));
+
+        // Approved first, then pending
+        return [...approved, ...staged];
     } catch (error) {
         console.error('Error fetching project testimonials:', error);
         throw new Error('Failed to fetch project testimonials: ' + error.message);
     }
 };
+
 
 export const uploadAssetFile = async (file, companyId, projectId, onProgress) => {
     if (!file) throw new Error('No file provided');
@@ -181,3 +198,40 @@ export const deleteAsset = async (asset) => {
         throw new Error('Failed to delete asset: ' + error.message);
     }
 };
+
+/**
+ * Stamps projectId + projectName onto staged (imported) docs.
+ * Called right after any ingestion (scrape / manual / spreadsheet).
+ */
+export const assignStagedProofsToProject = async (docIds, projectId, projectName) => {
+    try {
+        const batch = writeBatch(db);
+        docIds.forEach(id => {
+            const ref = doc(db, 'imported', id);
+            batch.update(ref, { projectId, projectName });
+        });
+        await batch.commit();
+    } catch (error) {
+        console.error('Error assigning staged proofs to project:', error);
+        throw new Error('Failed to assign staged proofs: ' + error.message);
+    }
+};
+
+/**
+ * Stamps projectId + projectName onto live testimonial docs.
+ * Called from the Dashboard "Assign Project" action.
+ */
+export const assignTestimonialsToProject = async (docIds, projectId, projectName) => {
+    try {
+        const batch = writeBatch(db);
+        docIds.forEach(id => {
+            const ref = doc(db, 'testimonials', id);
+            batch.update(ref, { projectId, projectName });
+        });
+        await batch.commit();
+    } catch (error) {
+        console.error('Error assigning testimonials to project:', error);
+        throw new Error('Failed to assign testimonials: ' + error.message);
+    }
+};
+

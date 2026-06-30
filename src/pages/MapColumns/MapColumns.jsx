@@ -1,18 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BsArrowUp } from 'react-icons/bs';
+import { FaSpinner } from 'react-icons/fa';
 import './MapColumns.css';
 import { TARGET_FIELDS, smartMapColumns } from '../../utils/columnMapper';
 import { parseFullFile } from '../../utils/fileParser';
-import { saveTestimonialsBatch } from '../../services/firestoreService'; 
+import { saveTestimonialsBatch } from '../../services/firestoreService';
 import { useAuth } from '../../contexts/AuthContext';
+import { getProjects, assignStagedProofsToProject } from '../../services/projectService';
+import ProjectPickerModal from '../../components/ProjectPickerModal/ProjectPickerModal';
 
 const MapColumns = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userProfile } = useAuth();
   const fileName = location.state?.fileName || 'spreadsheet.xlsx';
-  const columnNames = location.state?.columnNames || []; // Get detected column names from uploaded file
+  const columnNames = location.state?.columnNames || [];
 
   // Database fields (system fields)
   // UPDATED: Derive the list of labels from the central TARGET_FIELDS array
@@ -74,6 +78,20 @@ const MapColumns = () => {
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+
+  // Project picker state
+  const [projects, setProjects] = useState([]);
+  const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false);
+  const [stagedDocIds, setStagedDocIds] = useState([]);
+
+  // Fetch projects for the company
+  useEffect(() => {
+    if (userProfile?.company) {
+      getProjects(userProfile.company)
+        .then(setProjects)
+        .catch(err => console.warn('Could not load projects for MapColumns:', err));
+    }
+  }, [userProfile]);
 
   const handleUpload = async () => {
     setIsUploading(true);
@@ -165,19 +183,33 @@ const MapColumns = () => {
 
       console.log('Transformed data to upload:', transformedData);
 
-      // Save to Firestore
+      // Save to Firestore (staged in 'imported' collection)
       const docIds = await saveTestimonialsBatch(transformedData);
-      console.log('Successfully saved testimonials. Document IDs:', docIds);
+      console.log('Successfully staged testimonials. Document IDs:', docIds);
 
       // Clear sessionStorage
       sessionStorage.removeItem('uploadedFile');
 
-      // Navigate to dashboard
-      navigate('/dashboard');
+      // Open project picker
+      setStagedDocIds(docIds);
+      setIsProjectPickerOpen(true);
     } catch (error) {
       console.error('Upload error:', error);
       setUploadError(error.message || 'Failed to upload data. Please try again.');
       setIsUploading(false);
+    }
+  };
+
+  const handleProjectConfirmed = async (project) => {
+    try {
+      if (stagedDocIds.length > 0) {
+        await assignStagedProofsToProject(stagedDocIds, project.id, project.name);
+      }
+    } catch (err) {
+      console.warn('Could not stamp project on spreadsheet proofs:', err);
+    } finally {
+      setIsProjectPickerOpen(false);
+      navigate('/import');
     }
   };
 
@@ -245,11 +277,22 @@ const MapColumns = () => {
               onClick={handleUpload}
               disabled={isUploading}
             >
-              <BsArrowUp /> {isUploading ? 'Uploading...' : 'Upload'}
+              {isUploading ? <><FaSpinner className="animate-spin" /> Uploading...</> : <><BsArrowUp /> Upload</>}
             </button>
           </div>
         </div>
       </main>
+
+      <ProjectPickerModal
+        isOpen={isProjectPickerOpen}
+        projects={projects}
+        count={stagedDocIds.length}
+        title="Which project are these proofs for?"
+        subtitle={`Assign the ${stagedDocIds.length} uploaded proof${stagedDocIds.length !== 1 ? 's' : ''} to a project before reviewing them.`}
+        confirmLabel="Assign & Go to Import Page"
+        mandatory={true}
+        onConfirm={handleProjectConfirmed}
+      />
     </div>
   );
 };

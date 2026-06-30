@@ -78,8 +78,18 @@ const TestimonialCard = ({ testimonial, onSelect, isSelected, onDelete }) => {
           <p className="m-0">{testimonial.content}</p>
         </div>
 
-        <div className="flex justify-between items-center text-sm text-content-muted mt-auto pt-4 border-t border-border/50">
-          <p className="m-0">{testimonial.date || new Date().toLocaleDateString()}</p>
+        {/* Footer: date + project badge */}
+        <div className="flex justify-between items-center text-sm text-content-muted mt-auto pt-4 border-t border-border/50 gap-2 flex-wrap">
+          <p className="m-0 flex-shrink-0">{testimonial.date || new Date().toLocaleDateString()}</p>
+          {testimonial.projectName && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full flex-shrink-0">
+              {/* folder icon */}
+              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+              </svg>
+              <span className="truncate max-w-[120px]">{testimonial.projectName}</span>
+            </span>
+          )}
         </div>
       </div>
     </div>
