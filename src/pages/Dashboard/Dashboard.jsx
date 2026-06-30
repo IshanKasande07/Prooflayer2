@@ -228,26 +228,53 @@ const Dashboard = () => {
       setLoading(true);
       const batch = writeBatch(db);
       const idsToShare = [...selectedCards];
-      const firebaseIds = idsToShare.filter(
+      const firebaseIdsToShare = new Set(idsToShare.filter(
         id => !id.toString().startsWith('local-') && !id.toString().startsWith('mock-')
-      );
-      const localIds = idsToShare.filter(id => id.toString().startsWith('local-'));
+      ));
+      const localIdsToShare = new Set(idsToShare.filter(id => id.toString().startsWith('local-')));
 
-      if (firebaseIds.length > 0) {
-        firebaseIds.forEach(id => {
-          batch.update(doc(db, 'testimonials', id), {
-            isDistributed: true,
-            sharedAt: new Date().toISOString()
-          });
+      let batchHasWrites = false;
+
+      // 1. Unshare currently distributed firebase proofs that aren't in the new selection
+      proofs.forEach(proof => {
+        const isFirebase = !proof.id.toString().startsWith('local-') && !proof.id.toString().startsWith('mock-');
+        if (isFirebase) {
+          if (proof.isDistributed && !firebaseIdsToShare.has(proof.id)) {
+            batch.update(doc(db, 'testimonials', proof.id), { isDistributed: false });
+            batchHasWrites = true;
+          }
+        }
+      });
+
+      // 2. Share the newly selected firebase proofs
+      firebaseIdsToShare.forEach(id => {
+        batch.update(doc(db, 'testimonials', id), {
+          isDistributed: true,
+          sharedAt: new Date().toISOString()
         });
+        batchHasWrites = true;
+      });
+
+      if (batchHasWrites) {
         await batch.commit();
       }
 
-      if (localIds.length > 0) {
-        const currentLocal = JSON.parse(localStorage.getItem('temp_scraped_reviews') || '[]');
-        localStorage.setItem('temp_scraped_reviews', JSON.stringify(
-          currentLocal.map(t => localIds.includes(t.id) ? { ...t, isDistributed: true } : t)
-        ));
+      // Handle local storage unsharing/sharing
+      const currentLocal = JSON.parse(localStorage.getItem('temp_scraped_reviews') || '[]');
+      let localUpdated = false;
+      const updatedLocal = currentLocal.map(t => {
+        if (localIdsToShare.has(t.id)) {
+          localUpdated = true;
+          return { ...t, isDistributed: true };
+        } else if (t.isDistributed) {
+          localUpdated = true;
+          return { ...t, isDistributed: false };
+        }
+        return t;
+      });
+      
+      if (localUpdated) {
+        localStorage.setItem('temp_scraped_reviews', JSON.stringify(updatedLocal));
       }
 
       await fetchProofs();

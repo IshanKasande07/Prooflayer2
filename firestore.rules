@@ -77,5 +77,14 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if isPrivilegedOrAdmin();
     }
+
+    // WIDGET CONFIGS COLLECTION (Distribution Settings)
+    // Public read: pixel.js on any external client website needs to fetch config without auth
+    // Authenticated write: only logged-in ProofLayer users can save/update widget settings
+    match /widgetConfigs/{tokenId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
   }
 }
