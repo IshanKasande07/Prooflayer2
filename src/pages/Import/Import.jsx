@@ -4,6 +4,7 @@ import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import "./Import.css";
 import TestimonialCard from "../../components/TestimonialCard/TestimonialCard";
+import TestimonialDrawer from "../../components/TestimonialDrawer/TestimonialDrawer";
 import ImportSuccessModal from "../../components/ImportSuccessModal/ImportSuccessModal";
 import ProjectPickerModal from "../../components/ProjectPickerModal/ProjectPickerModal";
 import { useAuth } from "../../contexts/AuthContext";
@@ -23,6 +24,9 @@ const Import = () => {
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false);
   const [reassigning, setReassigning] = useState(false);
   const [lastReassignedProject, setLastReassignedProject] = useState(null);
+
+  // Drawer state
+  const [drawerTestimonial, setDrawerTestimonial] = useState(null);
 
   const { userProfile } = useAuth();
   const navigate = useNavigate();
@@ -376,17 +380,18 @@ const Import = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-max">
+        <div className="flex flex-col gap-3">
           {scrapedTestimonials.map((testimonial) => (
-            <div key={testimonial.id} className="h-full">
-              <TestimonialCard
-                testimonial={testimonial}
-                onSelect={handleSelectTestimonial}
-                isSelected={selectedTestimonials.includes(testimonial.id)}
-                onDelete={handleDeleteSingle}
-                projectName={testimonial.projectName}
-              />
-            </div>
+            <TestimonialCard
+              key={testimonial.id}
+              testimonial={testimonial}
+              onSelect={handleSelectTestimonial}
+              isSelected={selectedTestimonials.includes(testimonial.id)}
+              onDelete={handleDeleteSingle}
+              projectName={testimonial.projectName}
+              horizontal
+              onCardClick={(t) => setDrawerTestimonial(t)}
+            />
           ))}
         </div>
       )}
@@ -409,6 +414,13 @@ const Import = () => {
         subtitle={`Reassign ${selectedCount} selected proof${selectedCount !== 1 ? 's' : ''} to a different project.`}
         confirmLabel="Reassign Proofs"
         mandatory={false}
+      />
+
+      {/* ── Testimonial Detail Drawer ──────────────────────────── */}
+      <TestimonialDrawer
+        testimonial={drawerTestimonial}
+        isOpen={!!drawerTestimonial}
+        onClose={() => setDrawerTestimonial(null)}
       />
     </div>
   );

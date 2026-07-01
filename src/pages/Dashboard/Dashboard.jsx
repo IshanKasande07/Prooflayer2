@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, writeBatch, doc } from 'firebase/fir
 import { db } from '../../firebase/firebase';
 import './Dashboard.css';
 import TestimonialCard from '../../components/TestimonialCard/TestimonialCard';
+import TestimonialDrawer from '../../components/TestimonialDrawer/TestimonialDrawer';
 import ProjectPickerModal from '../../components/ProjectPickerModal/ProjectPickerModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { hasPermission } from '../../constants/roles';
@@ -26,6 +27,9 @@ const Dashboard = () => {
 
   // Collapsible project sections — track which are collapsed (by name)
   const [collapsedSections, setCollapsedSections] = useState(new Set());
+
+  // Drawer state
+  const [drawerTestimonial, setDrawerTestimonial] = useState(null);
 
   const navigate = useNavigate();
   const { userRole, userProfile } = useAuth();
@@ -450,6 +454,7 @@ const Dashboard = () => {
                           testimonial={proof}
                           isSelected={selectedCards.has(proof.id)}
                           onSelect={handleCardSelect}
+                          onCardClick={(t) => setDrawerTestimonial(t)}
                         />
                       ))}
                     </div>
@@ -472,6 +477,13 @@ const Dashboard = () => {
         subtitle={`Move ${selectedCount} selected proof${selectedCount !== 1 ? 's' : ''} to a project.`}
         confirmLabel="Assign Proofs"
         mandatory={false}
+      />
+
+      {/* ── Testimonial Detail Drawer ──────────────────────────── */}
+      <TestimonialDrawer
+        testimonial={drawerTestimonial}
+        isOpen={!!drawerTestimonial}
+        onClose={() => setDrawerTestimonial(null)}
       />
     </div>
   );
