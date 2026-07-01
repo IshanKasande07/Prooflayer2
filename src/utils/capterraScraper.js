@@ -20,19 +20,19 @@ const detectScrapedoError = async (response) => {
         throw Object.assign(new Error('Scrapedo API token invalid.'), { code: 'SCRAPEDO_AUTH_FAILED' });
     }
     if (!response.ok) {
-        console.error([Scrapedo] ❌ Unexpected error(HTTP ${ status }).);
-        throw new Error(Scrape.do failed with status: ${ status });
+        console.error(`[Scrapedo] ❌ Unexpected error(HTTP ${ status }).`);
+        throw new Error(`Scrape.do failed with status: ${ status }`);
     }
     const text = await response.text();
     try {
         const json = JSON.parse(text);
         const msg = (json?.message || json?.error || '').toLowerCase();
         if (msg.includes('limit') || msg.includes('quota') || msg.includes('exceeded') || msg.includes('credit')) {
-            console.error([Scrapedo] ❌ API limit reached(JSON body): ${ json.message || json.error });
+            console.error(`[Scrapedo] ❌ API limit reached(JSON body): ${ json.message || json.error }`);
             throw Object.assign(new Error('Scrapedo API limit reached.'), { code: 'SCRAPEDO_QUOTA_EXCEEDED' });
         }
         if (msg.includes('unauthorized') || msg.includes('invalid token') || msg.includes('forbidden')) {
-            console.error([Scrapedo] ❌ API auth error(JSON body): ${ json.message || json.error });
+            console.error(`[Scrapedo] ❌ API auth error(JSON body): ${ json.message || json.error }`);
             throw Object.assign(new Error('Scrapedo API auth error.'), { code: 'SCRAPEDO_AUTH_FAILED' });
         }
     } catch (parseErr) {
@@ -56,7 +56,7 @@ const fetchWithScrapeDo = async (targetUrl, signal) => {
 
     // Add signal to fetch options for aborting
     const fetchOptions = signal ? { signal } : {};
-    const response = await fetch(${ SCRAPEDO_ENDPOINT } ? ${ params.toString() }, fetchOptions);
+    const response = await fetch(`${ SCRAPEDO_ENDPOINT }?${ params.toString() }`, fetchOptions);
     return await detectScrapedoError(response);
 };
 
@@ -72,7 +72,7 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress, signal) => {
     // Standard pagination for Capterra is usually ?page=X
     const cleanBaseUrl = baseUrl.split('#')[0];
     const separator = cleanBaseUrl.includes('?') ? '&' : '?';
-    const pagingBase = ${ cleanBaseUrl }${ separator }page =;
+    const pagingBase = `${ cleanBaseUrl }${ separator }page=`;
 
     for (let page = 1; page <= MAX_PAGES; page++) {
         // If aborted before we even start a page
@@ -81,9 +81,9 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress, signal) => {
             break;
         }
 
-        const pageUrl = ${ pagingBase }${ page };
+        const pageUrl = `${ pagingBase }${ page }`;
 
-        if (onProgress) onProgress(Scraping Capterra page ${ page } of ${ MAX_PAGES }...);
+        if (onProgress) onProgress(`Scraping Capterra page ${ page } of ${ MAX_PAGES }...`);
 
         try {
             const html = await fetchWithScrapeDo(pageUrl, signal);
@@ -110,7 +110,7 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress, signal) => {
             }
 
             if (reviewBlocks.length === 0) {
-                console.warn(No Capterra reviews found on page ${ page }.URL: ${ pageUrl });
+                console.warn(`No Capterra reviews found on page ${ page }. URL: ${ pageUrl }`);
                 break;
             }
 
@@ -140,7 +140,7 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress, signal) => {
                         const label = pc.querySelector("span.font-semibold");
                         const val = pc.querySelector("p.text-typo-20");
                         if (label && val) {
-                            combinedContent += ${ label.textContent.trim() }: ${ val.textContent.trim() } \n;
+                            combinedContent += `${ label.textContent.trim() }: ${ val.textContent.trim() }\n`;
                         }
                     });
 
@@ -200,7 +200,7 @@ export const scrapeCapterraReviews = async (baseUrl, onProgress, signal) => {
             if (error.code === 'SCRAPEDO_RATE_LIMIT' || error.code === 'SCRAPEDO_QUOTA_EXCEEDED' || error.code === 'SCRAPEDO_AUTH_FAILED') {
                 throw error;
             }
-            console.error(Error scraping Capterra page ${ page }:, error);
+            console.error(`Error scraping Capterra page ${ page }:`, error);
         }
     }
 
