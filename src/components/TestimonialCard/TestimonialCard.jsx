@@ -70,8 +70,15 @@ const TestimonialCard = ({ testimonial, onSelect, isSelected, onDelete }) => {
           </div>
         </div>
         <div className="mb-4">
-          <span className="text-yellow-400 text-lg">{"★".repeat(Math.round(testimonial.rating || 0))}</span>
-          <span className="text-gray-200 text-lg">{"★".repeat(5 - Math.round(testimonial.rating || 0))}</span>
+          {(() => {
+            const filled = Math.max(0, Math.min(5, Math.round(testimonial.rating || 0)));
+            return (
+              <>
+                <span className="text-yellow-400 text-lg">{"★".repeat(filled)}</span>
+                <span className="text-gray-200 text-lg">{"★".repeat(5 - filled)}</span>
+              </>
+            );
+          })()}
         </div>
 
         <div className="mb-4 text-content-primary leading-relaxed">

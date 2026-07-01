@@ -10,8 +10,7 @@ import './NewProof.css';
 // Import the logos from your assets folder
 import g2Logo from '../../assets/image-49.png';
 import capterraLogo from '../../assets/image-50.png';
-import trustradiusLogo from '../../assets/image-51.png';
-import getappLogo from '../../assets/image-54.png';
+
 
 const BrandLogo = ({ src, alt }) => (
   <img src={src} alt={alt} style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
@@ -23,8 +22,6 @@ const allSources = [
   { id: 2, icon: <FaFileExcel style={{ fontSize: '2.5rem' }} />, title: 'Upload Spreadsheet', requiresImport: true },
   { id: 3, icon: <BrandLogo src={g2Logo} alt="G2" />, title: 'G2', requiresImport: true },
   { id: 4, icon: <BrandLogo src={capterraLogo} alt="Capterra" />, title: 'Capterra', requiresImport: true },
-  { id: 5, icon: <BrandLogo src={trustradiusLogo} alt="Trustradius" />, title: 'Trustradius', requiresImport: true },
-  { id: 6, icon: <BrandLogo src={getappLogo} alt="Getapp" />, title: 'Getapp', requiresImport: true },
 ];
 
 const NewProof = () => {

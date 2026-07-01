@@ -122,27 +122,11 @@ function AppLayout() {
           {/* Review Details - All authenticated users */}
           <Route path="/review/:id" element={<ReviewDetails />} />
 
-          {/* Import Routes - All authenticated users */}
-          <Route path="/import" element={
-            <ProtectedRoute>
-              <Import />
-            </ProtectedRoute>
-          } />
-          <Route path="/upload-spreadsheet" element={
-            <ProtectedRoute>
-              <UploadSpreadsheet />
-            </ProtectedRoute>
-          } />
-          <Route path="/map-columns" element={
-            <ProtectedRoute>
-              <MapColumns />
-            </ProtectedRoute>
-          } />
-          <Route path="/manual-import" element={
-            <ProtectedRoute>
-              <ManualImport />
-            </ProtectedRoute>
-          } />
+          {/* Import Routes - All authenticated users (already inside parent ProtectedRoute) */}
+          <Route path="/import" element={<Import />} />
+          <Route path="/upload-spreadsheet" element={<UploadSpreadsheet />} />
+          <Route path="/map-columns" element={<MapColumns />} />
+          <Route path="/manual-import" element={<ManualImport />} />
 
           {/* Manage Users - Admin only */}
           <Route path="/manage-users" element={
